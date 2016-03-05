@@ -1,12 +1,19 @@
 class Gomoku
 	def initialize
 		@board = Array.new(15){Array.new(15){'.'}}
-		@player1 = nil
-		@player2 = nil
 		@turn = 0
 	end
 
 	def startGame
+		option = ['Computer', 'Human']
+
+		printf("First player is (1) Computer or (2) Human? ")
+		@player1 = gets
+		puts "Player O is " + option[@player1.to_i-1]
+
+		printf("Second player is (1) Computer or (2) Human? ")
+		@player2 = gets
+		puts "Player X is " + option[@player2.to_i-1]
 	end
 
 	def printBoard
@@ -37,5 +44,4 @@ end
 class Computer
 end
 
-a = Gomoku.new
-a.printBoard
+Gomoku.new.startGame
