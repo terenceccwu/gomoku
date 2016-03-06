@@ -5,15 +5,32 @@ class Gomoku
 	end
 
 	def startGame
-		option = ['Computer', 'Human']
-
 		printf("First player is (1) Computer or (2) Human? ")
-		@player1 = gets
-		puts "Player O is " + option[@player1.to_i-1]
+		input = gets
+		@player1 = Human.new('O')
+
+		puts "Player O is " + @player1.class.name
 
 		printf("Second player is (1) Computer or (2) Human? ")
-		@player2 = gets
-		puts "Player X is " + option[@player2.to_i-1]
+		input = gets
+		@player2 = Human.new('X')
+		puts "Player X is " + @player2.class.name
+
+		@players = [@player1, @player2]
+		for i in @players
+
+			#get nextMove
+			while !(place = i.nextMove) || (@board[place[0]][place[1]] != '.')
+				#if invalid range or occupied cell, error
+				puts "Invalid input. Try again!"
+			end
+			@board[place[0]][place[1]] = i.symbol
+			
+			printBoard
+
+			#determine if player wins:
+		end
+
 	end
 
 	def printBoard
@@ -36,12 +53,26 @@ class Player
 	def nextMove
 		raise NotImplementedError
 	end
+
+	attr_reader :symbol
 end
 
-class Human
+class Human < Player
+	def nextMove
+		printf("Player %c, make a move (row col): ", @symbol)
+		input = gets.split.map { |e| e.to_i }
+		if !(input.all? {|e| e.between?(0,14)})
+			return false
+		end
+
+		return input
+	end
 end
 
-class Computer
+class Computer < Player
 end
 
 Gomoku.new.startGame
+
+a = Human.new('X')
+
