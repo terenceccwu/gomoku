@@ -5,6 +5,15 @@ class Gomoku
 	end
 
 	def startGame
+		choosePlayerType
+
+		while !(winner = wins) #no one wins
+		end
+
+		puts "Player " + winner.symbol + " wins!"
+	end
+
+	def choosePlayerType
 		printf("First player is (1) Computer or (2) Human? ")
 		input = gets
 		@player1 = Human.new('O')
@@ -15,22 +24,103 @@ class Gomoku
 		input = gets
 		@player2 = Human.new('X')
 		puts "Player X is " + @player2.class.name
+	end
 
+	def wins
 		@players = [@player1, @player2]
 		for i in @players
 
 			#get nextMove
-			while !(place = i.nextMove) || (@board[place[0]][place[1]] != '.')
+			while !(cell = i.nextMove) || (@board[cell[0]][cell[1]] != '.')
 				#if invalid range or occupied cell, error
 				puts "Invalid input. Try again!"
 			end
-			@board[place[0]][place[1]] = i.symbol
+			@board[cell[0]][cell[1]] = i.symbol
 			
 			printBoard
 
 			#determine if player wins:
-		end
+			#check row
+			counter = 0
+			for y in 0...@board.length
+				if @board[cell[0]][y] == i.symbol
+						counter += 1
+				else
+					counter = 0
+					next
+				end
 
+				if counter == 5
+					return i
+				end
+			end
+
+			#check column
+			counter = 0
+			for x in 0...@board.length
+				if @board[x][cell[1]] == i.symbol
+						counter += 1
+				else
+					counter = 0
+					next
+				end
+
+				if counter == 5
+					return i
+				end
+			end
+
+			#check diagonal
+			if cell[0] >= cell[1]
+				x = cell[0] - cell[1]
+				y = 0
+			else
+				x = 0
+				y = cell[1] - cell[0]
+			end
+
+			counter = 0
+			while x < @board.length	&& y < @board.length
+				if @board[x][y] == i.symbol
+					counter += 1
+					x += 1; y += 1
+				else
+					counter = 0
+					x += 1; y += 1
+					next
+				end
+
+				if counter == 5
+					return i
+				end
+			end
+
+			#check anti-diagonal
+			if cell[0] + cell[1] >= 14
+				x = 14
+				y = cell[0] + cell[1] - 14
+			else
+				x = cell[0] + cell[1]
+				y = 0
+			end
+
+			counter = 0
+			while x > 0	&& y < @board.length
+				if @board[x][y] == i.symbol
+					counter += 1
+					x -= 1; y += 1
+				else
+					counter = 0
+					x -= 1; y += 1
+					next
+				end
+
+				if counter == 5
+					return i
+				end
+			end
+		end
+		return nil #no one wins
 	end
 
 	def printBoard
