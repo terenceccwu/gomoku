@@ -13,7 +13,7 @@ class Gomoku
 	def startGame
 		choosePlayerType
 
-		while !(winner = wins) #no one wins
+		while !(winner = whoWins) #no one wins
 		end
 
 		puts "Player " + winner.symbol + " wins!"
@@ -32,10 +32,9 @@ class Gomoku
 		puts "Player X is " + @player2.class.name
 	end
 
-	def wins
+	def whoWins
 		@players = [@player1, @player2]
 		for i in @players
-
 			#get nextMove
 			while !(cell = i.nextMove) || (@board[cell[0]][cell[1]] != '.')
 				#if invalid range or occupied cell, error
@@ -45,89 +44,94 @@ class Gomoku
 			printf("Player %c places to row %d, col %d\n", i.symbol, cell[0], cell[1])
 			
 			printBoard
-
-			#determine if player wins:
-			#check row
-			counter = 0
-			for y in 0...@board.length
-				if @board[cell[0]][y] == i.symbol
-						counter += 1
-				else
-					counter = 0
-					next
-				end
-
-				if counter >= 5
-					return i
-				end
-			end
-
-			#check column
-			counter = 0
-			for x in 0...@board.length
-				if @board[x][cell[1]] == i.symbol
-						counter += 1
-				else
-					counter = 0
-					next
-				end
-
-				if counter >= 5 # 4 more excluding itself
-					return i
-				end
-			end
-
-			#check diagonal
-			counter = 0
-			x = cell[0]; y = cell[1]
-			# check right-up
-			for k in 1...4
-				if(@board[x-k][y+k] == i.symbol)
-					counter += 1
-				else
-					break
-				end
-			end
-			# check left-down
-			x = cell[0]; y = cell[1]
-			for k in 1...4
-				if(@board[x+k][y-k] == i.symbol)
-					counter += 1
-				else
-					break
-				end
-			end
-
-			if counter >= 4
-				return i
-			end
-
-			#check anti-diagonal
-			counter = 0
-			x = cell[0]; y = cell[1]
-			# check left-up
-			for k in 1...4
-				if(@board[x-k][y-k] == i.symbol)
-					counter += 1
-				else
-					break
-				end
-			end
-			# check right-down
-			x = cell[0]; y = cell[1]
-			for k in 1...4
-				if(@board[x+k][y+k] == i.symbol)
-					counter += 1
-				else
-					break
-				end
-			end
-
-			if counter >= 4
+			if checkWin(cell, i.symbol)
 				return i
 			end
 		end
 		return nil #no one wins
+	end
+
+	def checkWin(cell,symbol)
+		x = cell[0]
+		y = cell[1]
+		# check column
+		xmin = [x-4,0].max
+		xmax = [x+4,@board.length-1].min
+		counter = 0
+		for i in xmin..xmax
+			if @board[i][y] == symbol
+					counter += 1
+					if counter >= 5 # 4 more excluding itself
+						return true
+					end
+			else
+				counter = 0 # reset when disconected
+			end
+		end
+
+		# check row
+		ymin = [y-4,0].max
+		ymax = [y+4,@board.length-1].min
+		counter = 0
+		for i in ymin..ymax
+			if @board[x][i] == symbol
+					counter += 1
+					if counter >= 5 # 4 more excluding itself
+						return true
+					end
+			else
+				counter = 0 # reset when disconected
+			end
+		end
+
+		#check /
+		counter = 0
+		# check right-up
+		for k in 1..4
+			if(@board[x-k][y+k] != symbol || x-k < 0 || y+k > @board.length-1)
+				break
+			else
+				counter += 1
+			end
+		end
+		# check left-down
+		x = cell[0]; y = cell[1]
+		for k in 1..4
+			if(@board[x+k][y-k] != symbol || x+k > @board.length-1 || y-k < 0)
+				break
+			else
+				counter += 1
+			end
+		end
+
+		if counter >= 4
+			return true
+		end
+
+		#check \
+		counter = 0
+		# check left-up
+		for k in 1..4
+			if(@board[x-k][y-k] != symbol || x-k < 0 || y-k < 0)
+				break
+			else
+				counter += 1
+			end
+		end
+		# check right-down
+		x = cell[0]; y = cell[1]
+		for k in 1..4
+			if(@board[x+k][y+k] != symbol || x+k > @board.length-1 ||  y+k > @board.length-1)
+				break
+			else
+				counter += 1
+			end
+		end
+
+		if counter >= 4
+			return true
+		end
+		return false
 	end
 
 	def printBoard
