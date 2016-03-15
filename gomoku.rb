@@ -1,11 +1,11 @@
 class Gomoku
 	def initialize
-		@board = Array.new(15){Array.new(15){'.'}}
-		@board[0][0] = 'X'
-		@board[1][1] = 'X'
-		@board[2][2] = 'X'
-		@board[4][4] = 'X'
-		@board[5][5] = 'X'
+		@board_obj = Board.new
+		# @board[0][0] = 'X'
+		# @board[1][1] = 'X'
+		# @board[2][2] = 'X'
+		# @board[4][4] = 'X'
+		# @board[5][5] = 'X'
 
 		@turn = 0
 	end
@@ -49,6 +49,33 @@ class Gomoku
 			end
 		end
 		return nil #no one wins
+	end
+
+	def printBoard
+		puts "                       1 1 1 1 1"
+		puts "   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4"
+		for i in 0...@board.length
+			printf("%2d", i)
+			for j in 0...@board.length
+				printf("%2c", @board[i][j])
+			end
+			puts nil
+		end
+	end
+
+	def getBoard(x,y)
+		return @board[x][y]
+	end
+
+end
+
+class Board
+	def initialize
+		@board = Array.new(15){Array.new(15){'.'}}
+	end
+
+	def valueAt(x,y)
+		return @board[x][y]
 	end
 
 	def checkWin(cell,symbol)
@@ -133,23 +160,6 @@ class Gomoku
 		end
 		return false
 	end
-
-	def printBoard
-		puts "                       1 1 1 1 1"
-		puts "   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4"
-		for i in 0...@board.length
-			printf("%2d", i)
-			for j in 0...@board.length
-				printf("%2c", @board[i][j])
-			end
-			puts nil
-		end
-	end
-
-	def getBoard(x,y)
-		return @board[x][y]
-	end
-
 end
 
 class Player
@@ -176,6 +186,9 @@ class Human < Player
 end
 
 class Computer < Player
+	def nextMove
+
+	end
 end
 
 Gomoku.new.startGame
