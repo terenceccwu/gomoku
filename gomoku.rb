@@ -1,10 +1,11 @@
 class Gomoku
 	def initialize
 		@board = Array.new(15){Array.new(15){'.'}}
-		@board[0][4] = 'X'
-		@board[1][3] = 'X'
+		@board[0][0] = 'X'
+		@board[1][1] = 'X'
 		@board[2][2] = 'X'
-		@board[4][0] = 'X'
+		@board[4][4] = 'X'
+		@board[5][5] = 'X'
 
 		@turn = 0
 	end
@@ -56,7 +57,7 @@ class Gomoku
 					next
 				end
 
-				if counter == 5
+				if counter >= 5
 					return i
 				end
 			end
@@ -71,7 +72,7 @@ class Gomoku
 					next
 				end
 
-				if counter == 5
+				if counter >= 5 # 4 more excluding itself
 					return i
 				end
 			end
@@ -81,58 +82,49 @@ class Gomoku
 			x = cell[0]; y = cell[1]
 			# check right-up
 			for k in 1...4
-				if(@board[x+k][y+k] == i.symbol && k < 5)
+				if(@board[x-k][y+k] == i.symbol)
 					counter += 1
+				else
+					break
+				end
+			end
+			# check left-down
+			x = cell[0]; y = cell[1]
+			for k in 1...4
+				if(@board[x+k][y-k] == i.symbol)
+					counter += 1
+				else
+					break
 				end
 			end
 
-			# if cell[0] >= cell[1]
-			# 	x = cell[0] - cell[1]
-			# 	y = 0
-			# else
-			# 	x = 0
-			# 	y = cell[1] - cell[0]
-			# end
-
-			# counter = 0
-			# while x < @board.length	&& y < @board.length
-			# 	if @board[x][y] == i.symbol
-			# 		counter += 1
-			# 		x += 1; y += 1
-			# 	else
-			# 		counter = 0
-			# 		x += 1; y += 1
-			# 		next
-			# 	end
-
-			# 	if counter == 5
-			# 		return i
-			# 	end
-			# end
+			if counter >= 4
+				return i
+			end
 
 			#check anti-diagonal
-			if cell[0] + cell[1] >= 14
-				x = 14
-				y = cell[0] + cell[1] - 14
-			else
-				x = cell[0] + cell[1]
-				y = 0
+			counter = 0
+			x = cell[0]; y = cell[1]
+			# check left-up
+			for k in 1...4
+				if(@board[x-k][y-k] == i.symbol)
+					counter += 1
+				else
+					break
+				end
+			end
+			# check right-down
+			x = cell[0]; y = cell[1]
+			for k in 1...4
+				if(@board[x+k][y+k] == i.symbol)
+					counter += 1
+				else
+					break
+				end
 			end
 
-			counter = 0
-			while x > 0	&& y < @board.length
-				if @board[x][y] == i.symbol
-					counter += 1
-					x -= 1; y += 1
-				else
-					counter = 0
-					x -= 1; y += 1
-					next
-				end
-
-				if counter == 5
-					return i
-				end
+			if counter >= 4
+				return i
 			end
 		end
 		return nil #no one wins
