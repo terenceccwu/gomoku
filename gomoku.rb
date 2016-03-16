@@ -70,11 +70,6 @@ class Board
 	def initialize
 		@board = Array.new(15){Array.new(15){'.'}}
 		@length = @board.length
-		# @board.set([3,3], 'X')
-		# @board.set([2,2], 'X')
-		# @board.set([1,1], 'X')
-		# @board.set([4,4], 'X')
-		# @board.set([5,5], 'X')
 		@empty_cell = Array.new()
 		for i in 0...@length
 			for j in 0...@length
@@ -111,37 +106,81 @@ class Board
 	end
 
 	def checkWin(cell,symbol)
-		x = cell[0]
-		y = cell[1]
+		x,y = cell
 		# check column
-		xmin = [x-4,0].max
-		xmax = [x+4,@board.length-1].min
+		#check /
 		counter = 0
-		for i in xmin..xmax
-			if @board[i][y] == symbol
-					counter += 1
-					if counter >= 5 # 4 more excluding itself
-						return true
-					end
+		# check upwards
+		for k in 1..4
+			if(x-k < 0 || @board[x-k][y] != symbol)
+				break
 			else
-				counter = 0 # reset when disconected
+				counter += 1
+			end
+		end
+		# check downwards
+		for k in 1..4
+			if(x+k > @board.length-1 || @board[x+k][y] != symbol)
+				break
+			else
+				counter += 1
 			end
 		end
 
+		if counter >= 4
+			return true
+		end
+
+		# xmin = [x-4,0].max
+		# xmax = [x+4,@board.length-1].min
+		# counter = 0
+		# for i in xmin..xmax
+		# 	if @board[i][y] == symbol
+		# 			counter += 1
+		# 			if counter >= 5 # 4 more excluding itself
+		# 				return true
+		# 			end
+		# 	else
+		# 		counter = 0 # reset when disconected
+		# 	end
+		# end
+
 		# check row
-		ymin = [y-4,0].max
-		ymax = [y+4,@board.length-1].min
 		counter = 0
-		for i in ymin..ymax
-			if @board[x][i] == symbol
-					counter += 1
-					if counter >= 5 # 4 more excluding itself
-						return true
-					end
+		# check leftwards
+		for k in 1..4
+			if(y-k < 0 || @board[x][y-k] != symbol)
+				break
 			else
-				counter = 0 # reset when disconected
+				counter += 1
 			end
 		end
+		# check rightwards
+		for k in 1..4
+			if(y+k > @board.length-1 || @board[x][y+k] != symbol)
+				break
+			else
+				counter += 1
+			end
+		end
+
+		if counter >= 4
+			return true
+		end
+
+		# ymin = [y-4,0].max
+		# ymax = [y+4,@board.length-1].min
+		# counter = 0
+		# for i in ymin..ymax
+		# 	if @board[x][i] == symbol
+		# 			counter += 1
+		# 			if counter >= 5 # 4 more excluding itself
+		# 				return true
+		# 			end
+		# 	else
+		# 		counter = 0 # reset when disconected
+		# 	end
+		# end
 
 		#check /
 		counter = 0
@@ -221,22 +260,50 @@ class Human < Player
 end
 
 class Computer < Player
+	def initialize(symbol)
+		super
+		@previous_move = []
+	end
+	
+	def neighbor(cell)
+		if cell == nil
+			return nil
+		end
+		x,y = cell
+		return [[x-1,y-1],[x-1,y],[x-1,y+1],[x,y-1],[x,y+1],[x+1,y-1],[x+1,y],[x+1,y+1]]
+	end
+
 	def nextMove(board)
 		possible_move = Array.new()
-		empty_cell = Array.new()
-		for cell in board.get_empty_cell
+		empty_cell = board.get_empty_cell
+		puts empty_cell.length
+		for cell in empty_cell
 			if board.checkWin(cell , @symbol)
+				
 				possible_move.push(cell)
 			end
 		end
 		puts 'done'
 
 		if possible_move.length > 0
-			return possible_move.sample # random sample an array element
+			puts "possible!"
+			@previous_move = possible_move.sample # random sample an array element
+			return @previous_move
 		end
 
 		if empty_cell.length > 0
-			return empty_cell.sample
+			puts "have empty"
+			if @previous_move.length > 0
+				possible_move = neighbor(@previous_move) & empty_cell
+				if possible_move.length > 0
+					@previous_move = possible_move.sample
+					return @previous_move
+				end
+			end
+
+			@previous_move = empty_cell.sample
+
+			return @previous_move
 		end
 
 		return nil
