@@ -1,13 +1,13 @@
 class Gomoku
 	def initialize
-		@board_obj = Board.new
+		@board = Board.new
 		# @board[0][0] = 'X'
 		# @board[1][1] = 'X'
 		# @board[2][2] = 'X'
 		# @board[4][4] = 'X'
 		# @board[5][5] = 'X'
 
-		@turn = 0
+		@turn = nil
 	end
 
 	def startGame
@@ -33,18 +33,18 @@ class Gomoku
 	end
 
 	def whoWins
-		@players = [@player1, @player2]
-		for i in @players
+		@turn = [@player1, @player2]
+		for i in @turn
 			#get nextMove
-			while !(cell = i.nextMove) || (@board[cell[0]][cell[1]] != '.')
+			while !(cell = i.nextMove) || (@board.valueAt(cell) != '.')
 				#if invalid range or occupied cell, error
 				puts "Invalid input. Try again!"
 			end
-			@board[cell[0]][cell[1]] = i.symbol
+			@board.set(cell,i.symbol)
 			printf("Player %c places to row %d, col %d\n", i.symbol, cell[0], cell[1])
 			
 			printBoard
-			if checkWin(cell, i.symbol)
+			if @board.checkWin(cell, i.symbol)
 				return i
 			end
 		end
@@ -57,14 +57,10 @@ class Gomoku
 		for i in 0...@board.length
 			printf("%2d", i)
 			for j in 0...@board.length
-				printf("%2c", @board[i][j])
+				printf("%2c", @board.valueAt([i,j]))
 			end
 			puts nil
 		end
-	end
-
-	def getBoard(x,y)
-		return @board[x][y]
 	end
 
 end
@@ -72,10 +68,17 @@ end
 class Board
 	def initialize
 		@board = Array.new(15){Array.new(15){'.'}}
+		@length = @board.length
 	end
 
-	def valueAt(x,y)
-		return @board[x][y]
+	attr_reader :length
+
+	def valueAt(cell)
+		return @board[cell[0]][cell[1]]
+	end
+
+	def set(cell, symbol)
+		@board[cell[0]][cell[1]] = symbol
 	end
 
 	def checkWin(cell,symbol)
