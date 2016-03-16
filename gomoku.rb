@@ -1,12 +1,6 @@
 class Gomoku
 	def initialize
 		@board = Board.new
-		# @board[0][0] = 'X'
-		# @board[1][1] = 'X'
-		# @board[2][2] = 'X'
-		# @board[4][4] = 'X'
-		# @board[5][5] = 'X'
-
 		@turn = nil
 	end
 
@@ -16,19 +10,25 @@ class Gomoku
 		while !(winner = whoWins) #no one wins
 		end
 
-		puts "Player " + winner.symbol + " wins!"
+		if winner == -1
+			puts "Draw game!"
+		else
+			puts "Player " + winner.symbol + " wins!"
+		end
 	end
 
 	def choosePlayerType
+		player_type = [nil,Computer, Human]
+
 		printf("First player is (1) Computer or (2) Human? ")
-		input = gets
-		@player1 = Human.new('O')
+		input = gets.to_i
+		@player1 = player_type[input].new('O')
 
 		puts "Player O is " + @player1.class.name
 
 		printf("Second player is (1) Computer or (2) Human? ")
-		input = gets
-		@player2 = Human.new('X')
+		input = gets.to_i
+		@player2 = player_type[input].new('X')
 		puts "Player X is " + @player2.class.name
 	end
 
@@ -36,16 +36,17 @@ class Gomoku
 		@turn = [@player1, @player2]
 		for i in @turn
 			#get nextMove
-			while !(cell = i.nextMove) || (@board.valueAt(cell) != '.')
-				#if invalid range or occupied cell, error
-				puts "Invalid input. Try again!"
-			end
+			cell = i.nextMove(@board)
 			@board.set(cell,i.symbol)
 			printf("Player %c places to row %d, col %d\n", i.symbol, cell[0], cell[1])
 			
 			printBoard
 			if @board.checkWin(cell, i.symbol)
 				return i
+			end
+
+			if @board.no_more_moves
+				return -1
 			end
 		end
 		return nil #no one wins
@@ -69,6 +70,17 @@ class Board
 	def initialize
 		@board = Array.new(15){Array.new(15){'.'}}
 		@length = @board.length
+		# @board.set([3,3], 'X')
+		# @board.set([2,2], 'X')
+		# @board.set([1,1], 'X')
+		# @board.set([4,4], 'X')
+		# @board.set([5,5], 'X')
+		@empty_cell = Array.new()
+		for i in 0...@length
+			for j in 0...@length
+				@empty_cell.push([i,j]) if @board[i][j] == '.'
+			end
+		end
 	end
 
 	attr_reader :length
@@ -79,6 +91,23 @@ class Board
 
 	def set(cell, symbol)
 		@board[cell[0]][cell[1]] = symbol
+		@empty_cell.delete(cell)
+	end
+
+	def no_more_moves
+		return @empty_cell.length == 0
+	end
+
+	def get_empty_cell
+		return @empty_cell
+	end
+
+	def is_occupied(cell)
+		if @board[cell[0]][cell[1]] != '.'
+			return true
+		else
+			return false
+		end
 	end
 
 	def checkWin(cell,symbol)
@@ -118,16 +147,16 @@ class Board
 		counter = 0
 		# check right-up
 		for k in 1..4
-			if(@board[x-k][y+k] != symbol || x-k < 0 || y+k > @board.length-1)
+			if(x-k < 0 || y+k > @board.length-1 || @board[x-k][y+k] != symbol)
 				break
 			else
 				counter += 1
 			end
 		end
 		# check left-down
-		x = cell[0]; y = cell[1]
+		# x = cell[0]; y = cell[1]
 		for k in 1..4
-			if(@board[x+k][y-k] != symbol || x+k > @board.length-1 || y-k < 0)
+			if(x+k > @board.length-1 || y-k < 0 || @board[x+k][y-k] != symbol)
 				break
 			else
 				counter += 1
@@ -142,16 +171,16 @@ class Board
 		counter = 0
 		# check left-up
 		for k in 1..4
-			if(@board[x-k][y-k] != symbol || x-k < 0 || y-k < 0)
+			if(x-k < 0 || y-k < 0 || @board[x-k][y-k] != symbol)
 				break
 			else
 				counter += 1
 			end
 		end
 		# check right-down
-		x = cell[0]; y = cell[1]
+		# x = cell[0]; y = cell[1]
 		for k in 1..4
-			if(@board[x+k][y+k] != symbol || x+k > @board.length-1 ||  y+k > @board.length-1)
+			if( x+k > @board.length-1 ||  y+k > @board.length-1 || @board[x+k][y+k] != symbol)
 				break
 			else
 				counter += 1
@@ -169,7 +198,7 @@ class Player
 	def initialize(symbol)
 		@symbol = symbol
 	end
-	def nextMove
+	def nextMove(board)
 		raise NotImplementedError
 	end
 
@@ -177,19 +206,40 @@ class Player
 end
 
 class Human < Player
-	def nextMove
-		printf("Player %c, make a move (row col): ", @symbol)
-		input = gets.split.map { |e| e.to_i }
-		if !(input.all? {|e| e.between?(0,14)})
-			return false
+	def nextMove(board)
+		while 1
+			printf("Player %c, make a move (row col): ", @symbol)
+			input = gets.split.map { |e| e.to_i }
+			if (input.all? {|e| e.between?(0,14)}) && !board.is_occupied(input)
+				break
+			else
+				puts "Invalid input. Try again!"
+			end
 		end
-
 		return input
 	end
 end
 
 class Computer < Player
-	def nextMove
+	def nextMove(board)
+		possible_move = Array.new()
+		empty_cell = Array.new()
+		for cell in board.get_empty_cell
+			if board.checkWin(cell , @symbol)
+				possible_move.push(cell)
+			end
+		end
+		puts 'done'
+
+		if possible_move.length > 0
+			return possible_move.sample # random sample an array element
+		end
+
+		if empty_cell.length > 0
+			return empty_cell.sample
+		end
+
+		return nil
 
 	end
 end
